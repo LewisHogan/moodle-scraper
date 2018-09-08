@@ -10,6 +10,7 @@ class App extends Component {
 
         this.state = {
             loaded: false,
+            title: "",
             sections: []
         };
 
@@ -21,12 +22,7 @@ class App extends Component {
     }
 
     async fetchSections() {
-        // TODO: Check current webpage
-        // if we are on a moodle page (subdomain starts with moodle)
-        // attempt to load sections from page by executing script
-        // then update loaded state with data
-        // otherwise do nothing
-
+        // NOTE: sections actually has main title as first item, sections are following
         let sections = await new Promise((resolve, reject) => {
             chrome.tabs.executeScript({
                 // Has to load from the build directory, need to teach parcel where it is located somehow
@@ -38,16 +34,22 @@ class App extends Component {
             });
         });
 
-        this.setState({ loaded: true, sections: sections });
+        if (sections.length > 1) {
+            let title = sections.shift();
+
+            this.setState({ loaded: true, title: title, sections: sections });
+        }
+
     }
 
     render() {
 
         let sections = (
             <div>
+                <h2>{this.state.title}</h2>
                 {this.state.sections.map((section, i) => {
                     if (section.assets.length > 0) {
-                        return <MoodleSection key={section.title} title={section.title} assets={section.assets} />;
+                        return <MoodleSection key={section.title} title={this.state.title} section={section.title} assets={section.assets} />;
                     }
                 })}
             </div>
